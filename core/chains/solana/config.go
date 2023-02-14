@@ -12,6 +12,7 @@ import (
 
 	solcfg "github.com/smartcontractkit/chainlink-solana/pkg/solana/config"
 	soldb "github.com/smartcontractkit/chainlink-solana/pkg/solana/db"
+
 	v2 "github.com/smartcontractkit/chainlink/core/config/v2"
 )
 

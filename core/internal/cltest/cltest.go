@@ -32,6 +32,7 @@ import (
 	"github.com/manyminds/api2go/jsonapi"
 	"github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
+	solana2 "github.com/smartcontractkit/chainlink-solana/pkg/solana"
 	ocrtypes "github.com/smartcontractkit/libocr/offchainreporting/types"
 	"github.com/smartcontractkit/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -79,6 +80,7 @@ import (
 	"github.com/smartcontractkit/chainlink/core/services/keystore/keys/vrfkey"
 	"github.com/smartcontractkit/chainlink/core/services/pg"
 	"github.com/smartcontractkit/chainlink/core/services/pipeline"
+	"github.com/smartcontractkit/chainlink/core/services/relay"
 	"github.com/smartcontractkit/chainlink/core/services/webhook"
 	clsessions "github.com/smartcontractkit/chainlink/core/sessions"
 	"github.com/smartcontractkit/chainlink/core/static"
@@ -405,14 +407,7 @@ func NewApplicationWithConfig(t testing.TB, cfg chainlink.GeneralConfig, flagsAn
 	}
 	if cfg.SolanaEnabled() {
 		solLggr := lggr.Named("Solana")
-		opts := solana.ChainSetOpts{
-			Logger:   solLggr,
-			DB:       db,
-			KeyStore: keyStore.Solana(),
-		}
 		cfgs := cfg.SolanaConfigs()
-		opts.ORM = solana.NewORMImmut(cfgs)
-		chains.Solana, err = solana.NewChainSetImmut(opts, cfgs)
 		var ids []string
 		for _, c := range cfgs {
 			ids = append(ids, *c.ChainID)
@@ -422,9 +417,20 @@ func NewApplicationWithConfig(t testing.TB, cfg chainlink.GeneralConfig, flagsAn
 				t.Fatal(err)
 			}
 		}
+
+		opts := solana.ChainSetOpts{
+			Logger:   solLggr,
+			KeyStore: &keystore.SolanaSigner{keyStore.Solana()},
+			ORM:      solana.NewORMImmut(cfgs),
+		}
+		chainSet, err := solana.NewChainSetImmut(opts, cfgs)
 		if err != nil {
 			lggr.Fatal(err)
 		}
+
+		r := &relay.ChainRelayerService{ServiceCtx: chainSet, Relayer: relay.NewChainRelayer(solana2.NewRelayer(solLggr, chainSet), solLggr)}
+		chains.SolanaService = r
+		chains.SolanaRelayer = r.NewChainRelayer
 	}
 	if cfg.StarkNetEnabled() {
 		starkLggr := lggr.Named("StarkNet")
