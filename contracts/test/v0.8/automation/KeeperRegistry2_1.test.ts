@@ -13,6 +13,7 @@ import { KeeperRegistry21__factory as KeeperRegistryFactory } from '../../../typ
 import { MockArbGasInfo__factory as MockArbGasInfoFactory } from '../../../typechain/factories/MockArbGasInfo__factory'
 import { MockOVMGasPriceOracle__factory as MockOVMGasPriceOracleFactory } from '../../../typechain/factories/MockOVMGasPriceOracle__factory'
 import { KeeperRegistryLogic21__factory as KeeperRegistryLogicFactory } from '../../../typechain/factories/KeeperRegistryLogic21__factory'
+import { AutomationForwarderFactory__factory as AutomationForwarderFactory_Factory } from '../../../typechain/factories/AutomationForwarderFactory__factory'
 import { KeeperRegistry21 as KeeperRegistry } from '../../../typechain/KeeperRegistry21'
 import { KeeperRegistryLogic21 as KeeperRegistryLogic } from '../../../typechain/KeeperRegistryLogic21'
 import { MockV3Aggregator } from '../../../typechain/MockV3Aggregator'
@@ -21,6 +22,7 @@ import { UpkeepMock } from '../../../typechain/UpkeepMock'
 import { MockArbGasInfo } from '../../../typechain/MockArbGasInfo'
 import { MockOVMGasPriceOracle } from '../../../typechain/MockOVMGasPriceOracle'
 import { UpkeepTranscoder } from '../../../typechain/UpkeepTranscoder'
+import { AutomationForwarderFactory } from '../../../typechain/AutomationForwarderFactory'
 
 async function getUpkeepID(tx: any) {
   const receipt = await tx.wait()
@@ -58,6 +60,7 @@ let upkeepAutoFunderFactory: UpkeepAutoFunderFactory
 let upkeepTranscoderFactory: UpkeepTranscoderFactory
 let mockArbGasInfoFactory: MockArbGasInfoFactory
 let mockOVMGasPriceOracleFactory: MockOVMGasPriceOracleFactory
+let forwarderFactory_factory: AutomationForwarderFactory_Factory
 let personas: Personas
 
 const encodeConfig = (config: any) => {
@@ -181,6 +184,9 @@ before(async () => {
   mockOVMGasPriceOracleFactory = await ethers.getContractFactory(
     'MockOVMGasPriceOracle',
   )
+  forwarderFactory_factory = await ethers.getContractFactory(
+    'AutomationForwarderFactory',
+  )
 })
 
 describe('KeeperRegistry2_1', () => {
@@ -239,6 +245,7 @@ describe('KeeperRegistry2_1', () => {
   let transcoder: UpkeepTranscoder
   let mockArbGasInfo: MockArbGasInfo
   let mockOVMGasPriceOracle: MockOVMGasPriceOracle
+  let forwarderFactory: AutomationForwarderFactory
 
   let upkeepId: BigNumber
   let keeperAddresses: string[]
@@ -322,6 +329,7 @@ describe('KeeperRegistry2_1', () => {
         linkToken.address,
         linkEthFeed.address,
         gasPriceFeed.address,
+        forwarderFactory.address,
       )
     // Deploy a new registry since we change payment model
     const registry = await keeperRegistryFactory
@@ -525,6 +533,7 @@ describe('KeeperRegistry2_1', () => {
     mockOVMGasPriceOracle = await mockOVMGasPriceOracleFactory
       .connect(owner)
       .deploy()
+    forwarderFactory = await forwarderFactory_factory.connect(owner).deploy()
 
     const arbOracleCode = await ethers.provider.send('eth_getCode', [
       mockArbGasInfo.address,
@@ -544,7 +553,13 @@ describe('KeeperRegistry2_1', () => {
 
     registryLogic = await keeperRegistryLogicFactory
       .connect(owner)
-      .deploy(0, linkToken.address, linkEthFeed.address, gasPriceFeed.address)
+      .deploy(
+        0,
+        linkToken.address,
+        linkEthFeed.address,
+        gasPriceFeed.address,
+        forwarderFactory.address,
+      )
 
     config = {
       paymentPremiumPPB,
@@ -964,6 +979,7 @@ describe('KeeperRegistry2_1', () => {
             linkToken.address,
             linkEthFeed.address,
             gasPriceFeed.address,
+            forwarderFactory.address,
           )
         // Deploy a new registry since we change payment model
         const registry = await keeperRegistryFactory
@@ -1806,6 +1822,7 @@ describe('KeeperRegistry2_1', () => {
             linkToken.address,
             linkEthFeed.address,
             gasPriceFeed.address,
+            forwarderFactory.address,
           )
         // Deploy a new registry since we change payment model
         const registry = await keeperRegistryFactory
@@ -3934,7 +3951,13 @@ describe('KeeperRegistry2_1', () => {
     beforeEach(async () => {
       registryLogic2 = await keeperRegistryLogicFactory
         .connect(owner)
-        .deploy(0, linkToken.address, linkEthFeed.address, gasPriceFeed.address)
+        .deploy(
+          0,
+          linkToken.address,
+          linkEthFeed.address,
+          gasPriceFeed.address,
+          forwarderFactory.address,
+        )
 
       const config = {
         paymentPremiumPPB,

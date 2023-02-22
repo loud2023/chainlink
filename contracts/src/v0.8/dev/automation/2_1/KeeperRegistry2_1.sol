@@ -5,6 +5,7 @@ import "../../../vendor/openzeppelin-solidity/v4.7.3/contracts/proxy/Proxy.sol";
 import "../../../vendor/openzeppelin-solidity/v4.7.3/contracts/utils/structs/EnumerableSet.sol";
 import "../../../vendor/openzeppelin-solidity/v4.7.3/contracts/utils/Address.sol";
 import "./KeeperRegistryBase2_1.sol";
+import {AutomationForwarderFactory} from "./AutomationForwarder.sol";
 import {AutomationRegistryExecutableInterface, UpkeepInfo} from "../../interfaces/automation/2_1/AutomationRegistryInterface2_1.sol";
 import "../../../interfaces/automation/MigratableKeeperRegistryInterface.sol";
 import "../../../interfaces/automation/MigratableKeeperRegistryInterfaceV2.sol";
@@ -70,7 +71,8 @@ contract KeeperRegistry2_1 is
       keeperRegistryLogic.getPaymentModel(),
       keeperRegistryLogic.getLinkAddress(),
       keeperRegistryLogic.getLinkNativeFeedAddress(),
-      keeperRegistryLogic.getFastGasFeedAddress()
+      keeperRegistryLogic.getFastGasFeedAddress(),
+      keeperRegistryLogic.getForwarderFactoryAddress()
     )
   {
     i_keeperRegistryLogic = address(keeperRegistryLogic);

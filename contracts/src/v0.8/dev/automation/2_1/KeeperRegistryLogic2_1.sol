@@ -4,6 +4,7 @@ pragma solidity 0.8.6;
 import "../../../vendor/openzeppelin-solidity/v4.7.3/contracts/utils/structs/EnumerableSet.sol";
 import "../../../vendor/openzeppelin-solidity/v4.7.3/contracts/utils/Address.sol";
 import "./KeeperRegistryBase2_1.sol";
+import {AutomationForwarderFactory} from "./AutomationForwarder.sol";
 import "../../../interfaces/automation/UpkeepTranscoderInterfaceV2.sol";
 import "../../../interfaces/automation/MigratableKeeperRegistryInterfaceV2.sol";
 
@@ -24,8 +25,9 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
     PaymentModel paymentModel,
     address link,
     address linkNativeFeed,
-    address fastGasFeed
-  ) KeeperRegistryBase2_1(paymentModel, link, linkNativeFeed, fastGasFeed) {}
+    address fastGasFeed,
+    address forwarderFactory
+  ) KeeperRegistryBase2_1(paymentModel, link, linkNativeFeed, fastGasFeed, forwarderFactory) {}
 
   function checkUpkeep(uint256 id)
     external
