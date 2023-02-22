@@ -4,7 +4,7 @@ pragma solidity 0.8.6;
 import "../../../vendor/openzeppelin-solidity/v4.7.3/contracts/utils/structs/EnumerableSet.sol";
 import "../../../vendor/openzeppelin-solidity/v4.7.3/contracts/utils/Address.sol";
 import "./KeeperRegistryBase2_1.sol";
-import {AutomationForwarderFactory} from "./AutomationForwarder.sol";
+import {AutomationForwarder, AutomationForwarderFactory} from "./AutomationForwarder.sol";
 import "../../../interfaces/automation/UpkeepTranscoderInterfaceV2.sol";
 import "../../../interfaces/automation/MigratableKeeperRegistryInterfaceV2.sol";
 
@@ -161,7 +161,8 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
     if (msg.sender != owner() && msg.sender != s_storage.registrar) revert OnlyCallableByOwnerOrRegistrar();
 
     id = uint256(keccak256(abi.encode(blockhash(block.number - 1), address(this), s_storage.nonce)));
-    _createUpkeep(id, target, gasLimit, admin, 0, checkData, false, offchainConfig);
+    AutomationForwarder forwarder = i_forwarderFactory.deploy(target);
+    _createUpkeep(id, target, gasLimit, admin, 0, checkData, false, offchainConfig, forwarder);
     s_storage.nonce++;
     emit UpkeepRegistered(id, gasLimit, admin);
     return id;
@@ -412,6 +413,9 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
     (uint256[] memory ids, Upkeep[] memory upkeeps, bytes[] memory checkDatas, address[] memory upkeepAdmins, bytes[] memory offchainConfigs) = abi
       .decode(encodedUpkeeps, (uint256[], Upkeep[], bytes[], address[], bytes[]));
     for (uint256 idx = 0; idx < ids.length; idx++) {
+      if (address(upkeeps[idx].forwarder) == address(0)) {
+        upkeeps[idx].forwarder = i_forwarderFactory.deploy(upkeeps[idx].target);
+      }
       _createUpkeep(
         ids[idx],
         upkeeps[idx].target,
@@ -420,7 +424,8 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
         upkeeps[idx].balance,
         checkDatas[idx],
         upkeeps[idx].paused,
-        offchainConfigs[idx]
+        offchainConfigs[idx],
+        upkeeps[idx].forwarder
       );
       emit UpkeepReceived(ids[idx], upkeeps[idx].balance, msg.sender);
     }
@@ -444,7 +449,8 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
     uint96 balance,
     bytes memory checkData,
     bool paused,
-    bytes memory offchainConfig
+    bytes memory offchainConfig,
+    AutomationForwarder forwarder
   ) internal {
     if (s_hotVars.paused) revert RegistryPaused();
     if (!target.isContract()) revert NotAContract();
@@ -458,7 +464,8 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
       maxValidBlocknumber: UINT32_MAX,
       lastPerformBlockNumber: 0,
       amountSpent: 0,
-      paused: paused
+      paused: paused,
+      forwarder: forwarder
     });
     s_upkeepAdmin[id] = admin;
     s_expectedLinkBalance = s_expectedLinkBalance + balance;

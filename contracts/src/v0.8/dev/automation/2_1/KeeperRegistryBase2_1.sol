@@ -6,7 +6,7 @@ import "../../../vendor/@arbitrum/nitro-contracts/src/precompiles/ArbGasInfo.sol
 import "../../../vendor/@eth-optimism/contracts/0.8.6/contracts/L2/predeploys/OVM_GasPriceOracle.sol";
 import "../../../automation/ExecutionPrevention.sol";
 import {OnchainConfig, State, UpkeepFailureReason} from "../../interfaces/automation/2_1/AutomationRegistryInterface2_1.sol";
-import {AutomationForwarderFactory} from "./AutomationForwarder.sol";
+import {AutomationForwarder, AutomationForwarderFactory} from "./AutomationForwarder.sol";
 import "../../../ConfirmedOwner.sol";
 import "../../../interfaces/AggregatorV3Interface.sol";
 import "../../../interfaces/LinkTokenInterface.sol";
@@ -27,12 +27,14 @@ struct Upkeep {
   uint32 executeGas;
   uint32 maxValidBlocknumber;
   bool paused;
-  address target;
+  AutomationForwarder forwarder;
   // 3 bytes left in 1st EVM word - not written to in transmit
   uint96 amountSpent;
   uint96 balance;
   uint32 lastPerformBlockNumber;
   // 4 bytes left in 2nd EVM word - written in transmit path
+  address target;
+  // 12 bytes left in 3rd EVM word - neither written to nor read in transmit
 }
 
 /**
