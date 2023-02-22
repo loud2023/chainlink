@@ -246,13 +246,13 @@ func (o *orm) CreateJob(jb *Job, qopts ...pg.QOpt) error {
 					if err != nil {
 						return errors.Wrapf(ErrNoSuchTransmitterKey, "%v", jb.OCR2OracleSpec.TransmitterID)
 					}
-				case relay.Solana:
-					_, err := o.keyStore.Solana().Get(jb.OCR2OracleSpec.TransmitterID.String)
+				case relay.Cosmos:
+					_, err := o.keyStore.Cosmos().Get(jb.OCR2OracleSpec.TransmitterID.String)
 					if err != nil {
 						return errors.Wrapf(ErrNoSuchTransmitterKey, "%v", jb.OCR2OracleSpec.TransmitterID)
 					}
-				case relay.Terra:
-					_, err := o.keyStore.Terra().Get(jb.OCR2OracleSpec.TransmitterID.String)
+				case relay.Solana:
+					_, err := o.keyStore.Solana().Get(jb.OCR2OracleSpec.TransmitterID.String)
 					if err != nil {
 						return errors.Wrapf(ErrNoSuchTransmitterKey, "%v", jb.OCR2OracleSpec.TransmitterID)
 					}
