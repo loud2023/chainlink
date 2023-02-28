@@ -512,7 +512,7 @@ func (r *EvmRegistry) doCheck(ctx context.Context, keys []types.UpkeepKey, chRes
 	}
 
 	// check for offchainLookup
-	err = r.offchainLookup(ctx, upkeepResults)
+	upkeepResults, err = r.offchainLookup(ctx, upkeepResults)
 	if err != nil {
 		chResult <- checkResult{
 			err: err,
