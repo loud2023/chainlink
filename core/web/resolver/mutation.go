@@ -1381,7 +1381,12 @@ func (r *Resolver) CreateOCR2KeyBundle(ctx context.Context, args struct {
 		return nil, err
 	}
 
-	ct := FromOCR2ChainType(args.ChainType)
+	ct, err := FromOCR2ChainType(args.ChainType)
+	if err != nil {
+		// We have a mismatch between the chain types the resolver knows about and the chain types in the core
+		return nil, err
+	}
+
 	key, err := r.App.GetKeyStore().OCR2().Create(chaintype.ChainType(ct))
 	if err != nil {
 		// Not covering the	`chaintype.ErrInvalidChainType` since the GQL model would prevent a non-accepted chain-type from being received

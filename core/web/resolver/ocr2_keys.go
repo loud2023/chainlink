@@ -3,44 +3,50 @@ package resolver
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
-
 	"github.com/graph-gophers/graphql-go"
 	"github.com/pkg/errors"
+	"github.com/smartcontractkit/chainlink/core/services/keystore/chaintype"
 	"github.com/smartcontractkit/chainlink/core/services/keystore/keys/ocr2key"
 )
 
 // OCR2ChainType defines OCR2 Chain Types accepted on this resolver
 type OCR2ChainType string
 
+// These constants map to the enum type OCR2ChainType in ocr2_keys.graphql
 const (
 	// OCR2ChainTypeEVM defines OCR2 EVM Chain Type
 	OCR2ChainTypeEVM = "EVM"
 	// OCR2ChainTypeSolana defines OCR2 Solana Chain Type
 	OCR2ChainTypeSolana = "SOLANA"
+	// OCR2ChainTypeStarkNet defines OCR2 StarkNet Chain Type
+	OCR2ChainTypeStarkNet = "STARKNET"
 )
 
 // ToOCR2ChainType turns a valid string into a OCR2ChainType
 func ToOCR2ChainType(s string) (OCR2ChainType, error) {
 	switch s {
-	case "evm":
+	case string(chaintype.EVM):
 		return OCR2ChainTypeEVM, nil
-	case "solana":
+	case string(chaintype.Solana):
 		return OCR2ChainTypeSolana, nil
+	case string(chaintype.StarkNet):
+		return OCR2ChainTypeStarkNet, nil
 	default:
-		return "", errors.New("invalid ocr2 chain type")
+		return "", errors.New("unknown ocr2 chain type")
 	}
 }
 
 // FromOCR2ChainType returns the string (lowercased) value from a OCR2ChainType
-func FromOCR2ChainType(ct OCR2ChainType) string {
+func FromOCR2ChainType(ct OCR2ChainType) (string, error) {
 	switch ct {
 	case OCR2ChainTypeEVM:
-		return "evm"
+		return string(chaintype.EVM), nil
 	case OCR2ChainTypeSolana:
-		return "solana"
+		return string(chaintype.Solana), nil
+	case OCR2ChainTypeStarkNet:
+		return string(chaintype.StarkNet), nil
 	default:
-		return strings.ToLower(string(ct))
+		return "", errors.New("unknown ocr2 chain type")
 	}
 }
 
