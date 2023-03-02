@@ -592,37 +592,6 @@ contract KeeperRegistry2_1 is
   }
 
   /**
-   * @dev calls target address with exactly gasAmount gas and data as calldata
-   * or reverts if at least gasAmount gas is not available
-   */
-  function _callWithExactGas(
-    uint256 gasAmount,
-    address target,
-    bytes memory data
-  ) private returns (bool success) {
-    assembly {
-      let g := gas()
-      // Compute g -= PERFORM_GAS_CUSHION and check for underflow
-      if lt(g, PERFORM_GAS_CUSHION) {
-        revert(0, 0)
-      }
-      g := sub(g, PERFORM_GAS_CUSHION)
-      // if g - g//64 <= gasAmount, revert
-      // (we subtract g//64 because of EIP-150)
-      if iszero(gt(sub(g, div(g, 64)), gasAmount)) {
-        revert(0, 0)
-      }
-      // solidity calls check that a contract actually exists at the destination, so we do the same
-      if iszero(extcodesize(target)) {
-        revert(0, 0)
-      }
-      // call and return whether we succeeded. ignore return data
-      success := call(gasAmount, target, 0, add(data, 0x20), mload(data), 0, 0)
-    }
-    return success;
-  }
-
-  /**
    * @dev _decodeReport decodes a serialized report into a Report struct
    */
   function _decodeReport(bytes memory rawReport) internal pure returns (Report memory) {
@@ -721,9 +690,8 @@ contract KeeperRegistry2_1 is
   {
     gasUsed = gasleft();
     bytes memory callData = abi.encodeWithSelector(PERFORM_SELECTOR, performData);
-    success = _callWithExactGas(upkeep.executeGas, upkeep.target, callData);
+    success = upkeep.forwarder.forward(upkeep.executeGas, callData);
     gasUsed = gasUsed - gasleft();
-
     return (success, gasUsed);
   }
 
