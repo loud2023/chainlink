@@ -157,7 +157,7 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
     address admin,
     bytes calldata checkData,
     bytes calldata offchainConfig
-  ) external returns (uint256 id) {
+  ) external returns (uint256 id, address forwarder) {
     if (msg.sender != owner() && msg.sender != s_storage.registrar) revert OnlyCallableByOwnerOrRegistrar();
 
     id = uint256(keccak256(abi.encode(blockhash(block.number - 1), address(this), s_storage.nonce)));
@@ -165,7 +165,7 @@ contract KeeperRegistryLogic2_1 is KeeperRegistryBase2_1 {
     _createUpkeep(id, target, gasLimit, admin, 0, checkData, false, offchainConfig, forwarder);
     s_storage.nonce++;
     emit UpkeepRegistered(id, gasLimit, admin);
-    return id;
+    return (id, address(forwarder));
   }
 
   /**

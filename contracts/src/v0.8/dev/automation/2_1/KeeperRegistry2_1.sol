@@ -758,7 +758,7 @@ contract KeeperRegistry2_1 is
     address admin,
     bytes calldata checkData,
     bytes calldata offchainConfig
-  ) external override returns (uint256 id) {
+  ) external override returns (uint256 id, address forwarder) {
     // Executed through logic contract
     _fallback();
   }
