@@ -74,4 +74,7 @@ export default {
     timeout: 100000,
     forbidOnly: Boolean(process.env.CI),
   },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS ? true : false,
+  },
 }
