@@ -125,8 +125,8 @@ func (b *Txm) RegisterResumeCallback(fn ResumeCallback) {
 	b.resumeCallback = fn
 }
 
-// NewTxm creates a new Txm with the given configuration.
-func NewTxm(db *sqlx.DB, ethClient evmclient.Client, cfg Config, keyStore KeyStore, eventBroadcaster pg.EventBroadcaster, lggr logger.Logger, checkerFactory TransmitCheckerFactory, logPoller logpoller.LogPoller) *Txm {
+// NewEvmTxm creates a new EVM specific TXM with the given configuration using the core txm from NewTxm (which will eventually be chain-agnostic)
+func NewEvmTxm(db *sqlx.DB, ethClient evmclient.Client, cfg Config, keyStore KeyStore, eventBroadcaster pg.EventBroadcaster, lggr logger.Logger, checkerFactory TransmitCheckerFactory, logPoller logpoller.LogPoller) TxManager {
 	lggr = lggr.Named("Txm")
 	lggr.Infow("Initializing EVM transaction manager",
 		"gasBumpTxDepth", cfg.EvmGasBumpTxDepth(),
@@ -135,6 +135,26 @@ func NewTxm(db *sqlx.DB, ethClient evmclient.Client, cfg Config, keyStore KeySto
 		"nonceAutoSync", cfg.EvmNonceAutoSync(),
 		"gasLimitDefault", cfg.EvmGasLimitDefault(),
 	)
+
+	// build gas estimator for EVM txm
+	gasEstimator := gas.NewEstimator(lggr, ethClient, cfg)
+
+	// build forwarder manager for EVM txm
+	var fwdMgr *forwarders.FwdMgr
+	if cfg.EvmUseForwarders() {
+		fwdMgr = forwarders.NewFwdMgr(db, ethClient, logPoller, lggr, cfg)
+	} else {
+		lggr.Info("EvmForwarderManager: Disabled")
+	}
+
+	return NewTxm(db, ethClient, cfg, keyStore, eventBroadcaster, lggr, checkerFactory, fwdMgr, gasEstimator)
+}
+
+// NewTxm creates a new Txm with the given configuration.
+func NewTxm(db *sqlx.DB, ethClient evmclient.Client, cfg Config, keyStore KeyStore, eventBroadcaster pg.EventBroadcaster, lggr logger.Logger, checkerFactory TransmitCheckerFactory,
+	forwarderManager *forwarders.FwdMgr,
+	estimator txmgrtypes.FeeEstimator[*evmtypes.Head, gas.EvmFee, *assets.Wei, common.Hash],
+) *Txm {
 	b := Txm{
 		StartStopOnce:    utils.StartStopOnce{},
 		logger:           lggr,
@@ -145,7 +165,7 @@ func NewTxm(db *sqlx.DB, ethClient evmclient.Client, cfg Config, keyStore KeySto
 		config:           cfg,
 		keyStore:         keyStore,
 		eventBroadcaster: eventBroadcaster,
-		gasEstimator:     gas.NewEstimator(lggr, ethClient, cfg),
+		gasEstimator:     estimator,
 		chainID:          *ethClient.ChainID(),
 		checkerFactory:   checkerFactory,
 		chHeads:          make(chan *evmtypes.Head),
@@ -153,6 +173,7 @@ func NewTxm(db *sqlx.DB, ethClient evmclient.Client, cfg Config, keyStore KeySto
 		chStop:           make(chan struct{}),
 		chSubbed:         make(chan struct{}),
 		reset:            make(chan reset),
+		fwdMgr:           forwarderManager,
 	}
 	if cfg.EthTxResendAfterThreshold() > 0 {
 		b.ethResender = NewEthResender(lggr, b.orm, ethClient, keyStore, defaultResenderPollInterval, cfg)
@@ -163,11 +184,6 @@ func NewTxm(db *sqlx.DB, ethClient evmclient.Client, cfg Config, keyStore KeySto
 		b.reaper = NewReaper(lggr, db, cfg, *ethClient.ChainID())
 	} else {
 		b.logger.Info("EthTxReaper: Disabled")
-	}
-	if cfg.EvmUseForwarders() {
-		b.fwdMgr = forwarders.NewFwdMgr(db, ethClient, logPoller, lggr, cfg)
-	} else {
-		b.logger.Info("EvmForwarderManager: Disabled")
 	}
 
 	return &b
