@@ -21,6 +21,8 @@ import (
 	"github.com/smartcontractkit/chainlink/core/chains/evm/logpoller"
 	"github.com/smartcontractkit/chainlink/core/gethwrappers/generated/keeper_registry_wrapper2_0"
 	"github.com/smartcontractkit/chainlink/core/logger"
+	"github.com/smartcontractkit/chainlink/core/services/job"
+	"github.com/smartcontractkit/chainlink/core/services/keystore/keys/ethkey"
 	"github.com/smartcontractkit/chainlink/core/services/pg"
 	"github.com/smartcontractkit/chainlink/core/utils"
 )
@@ -353,6 +355,11 @@ func (r *EvmRegistry) pollLogs() error {
 	}
 
 	return nil
+}
+
+func FilterNamesFromSpec(spec *job.OCR2OracleSpec) (names []string, err error) {
+	addr := ethkey.MustEIP55Address(spec.ContractID).Address()
+	return []string{logpoller.FilterName("EvmRegistry - Upkeep events for", addr.String())}, err
 }
 
 func (r *EvmRegistry) registerEvents(chainID uint64, addr common.Address) error {

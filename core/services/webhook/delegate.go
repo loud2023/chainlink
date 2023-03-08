@@ -66,6 +66,8 @@ func (d *Delegate) BeforeJobDeleted(jb job.Job) {
 	}
 }
 
+func (d *Delegate) InDeleteJobTX(spec job.Job) error { return nil }
+
 // ServicesForSpec satisfies the job.Delegate interface.
 func (d *Delegate) ServicesForSpec(spec job.Job) ([]job.ServiceCtx, error) {
 	service := &pseudoService{

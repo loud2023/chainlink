@@ -66,6 +66,8 @@ type (
 		ServicesForSpec(spec Job) ([]ServiceCtx, error)
 		AfterJobCreated(spec Job)
 		BeforeJobDeleted(spec Job)
+		// InDeleteJobTX is called from within DELETE db transaction, for operations requiring mutual atomicity
+		InDeleteJobTX(spec Job) error
 	}
 
 	activeJob struct {
@@ -276,11 +278,21 @@ func (js *spawner) DeleteJob(jobID int32, qopts ...pg.QOpt) error {
 		aj, exists = js.activeJobs[jobID]
 	}()
 
-	ctx, cancel := utils.ContextFromChan(js.chStop)
+	q := js.q.WithOpts(qopts...)
+	if q.ParentCtx != nil {
+		ctx, cancel := utils.WithCloseChan(q.ParentCtx, js.chStop)
+		defer cancel()
+		q.ParentCtx = ctx
+	} else {
+		ctx, cancel := utils.ContextFromChan(js.chStop)
+		defer cancel()
+		q.ParentCtx = ctx
+	}
+	qctx, cancel := q.Context()
 	defer cancel()
 
 	if !exists { // inactive, so look up the spec and delegate
-		jb, err := js.orm.FindJob(ctx, jobID)
+		jb, err := js.orm.FindJob(qctx, jobID)
 		if err != nil {
 			return errors.Wrapf(err, "job %d not found", jobID)
 		}
@@ -299,20 +311,23 @@ func (js *spawner) DeleteJob(jobID int32, qopts ...pg.QOpt) error {
 	aj.delegate.BeforeJobDeleted(aj.spec)
 	lggr.Debugw("Callback: BeforeJobDeleted done")
 
-	err := js.orm.DeleteJob(jobID, append(qopts, pg.WithParentCtx(ctx))...)
-	if err != nil {
-		js.lggr.Errorw("Error deleting job", "jobID", jobID, "error", err)
-		return err
-	}
+	err := q.Transaction(func(tx pg.Queryer) error {
+		err := js.orm.DeleteJob(jobID, pg.WithQueryer(q.Queryer))
+		if err != nil {
+			js.lggr.Errorw("Error deleting job", "jobID", jobID, "error", err)
+			return err
+		}
+		err = aj.delegate.InDeleteJobTX(aj.spec)
 
-	if exists {
-		// Stop the service and remove the job from memory, which will always happen even if closing the services fail.
-		js.stopService(jobID)
-	}
+		if exists {
+			// Stop the service and remove the job from memory, which will always happen even if closing the services fail.
+			js.stopService(jobID)
+		}
+		lggr.Infow("Stopped and deleted job")
+		return nil
+	})
 
-	lggr.Infow("Stopped and deleted job")
-
-	return nil
+	return err
 }
 
 func (js *spawner) ActiveJobs() map[int32]Job {
@@ -352,6 +367,7 @@ func (n *NullDelegate) ServicesForSpec(spec Job) (s []ServiceCtx, err error) {
 	return
 }
 
-func (n *NullDelegate) BeforeJobCreated(spec Job) {}
-func (n *NullDelegate) AfterJobCreated(spec Job)  {}
-func (n *NullDelegate) BeforeJobDeleted(spec Job) {}
+func (n *NullDelegate) BeforeJobCreated(spec Job)    {}
+func (n *NullDelegate) AfterJobCreated(spec Job)     {}
+func (n *NullDelegate) BeforeJobDeleted(spec Job)    {}
+func (n *NullDelegate) InDeleteJobTX(spec Job) error { return nil }

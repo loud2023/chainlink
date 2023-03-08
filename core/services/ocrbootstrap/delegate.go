@@ -53,6 +53,8 @@ func (d *Delegate) BeforeJobCreated(spec job.Job) {
 	d.isNewlyCreatedJob = true
 }
 
+func (d *Delegate) InDeleteJobTX(spec job.Job) error { return nil }
+
 // ServicesForSpec satisfies the job.Delegate interface.
 func (d *Delegate) ServicesForSpec(jobSpec job.Job) (services []job.ServiceCtx, err error) {
 	spec := jobSpec.BootstrapSpec

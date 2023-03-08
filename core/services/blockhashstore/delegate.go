@@ -139,6 +139,8 @@ func (d *Delegate) BeforeJobCreated(spec job.Job) {}
 // BeforeJobDeleted satisfies the job.Delegate interface.
 func (d *Delegate) BeforeJobDeleted(spec job.Job) {}
 
+func (d *Delegate) InDeleteJobTX(spec job.Job) error { return nil }
+
 // service is a job.Service that runs the BHS feeder every pollPeriod.
 type service struct {
 	utils.StartStopOnce

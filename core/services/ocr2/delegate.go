@@ -16,6 +16,8 @@ import (
 	"github.com/smartcontractkit/sqlx"
 	"gopkg.in/guregu/null.v4"
 
+	ocr2keepersregistry "github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2keeper/evm"
+
 	"github.com/smartcontractkit/chainlink-relay/pkg/types"
 
 	"github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/dkg/persistence"
@@ -36,6 +38,7 @@ import (
 	"github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2keeper"
 	ocr2vrfconfig "github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2vrf/config"
 	ocr2coordinator "github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2vrf/coordinator"
+	ocr2vrfcoordinator "github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2vrf/coordinator"
 	"github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2vrf/juelsfeecoin"
 	"github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2vrf/reasonablegasprice"
 	"github.com/smartcontractkit/chainlink/core/services/ocr2/plugins/ocr2vrf/reportserializer"
@@ -112,8 +115,52 @@ func (d *Delegate) BeforeJobCreated(spec job.Job) {
 	// This is only called first time the job is created
 	d.isNewlyCreatedJob = true
 }
-func (d *Delegate) AfterJobCreated(spec job.Job)  {}
-func (d *Delegate) BeforeJobDeleted(spec job.Job) {}
+func (d *Delegate) AfterJobCreated(spec job.Job) {}
+func (d *Delegate) BeforeJobDeleted(jb job.Job) {
+	spec := jb.OCR2OracleSpec
+	if spec == nil {
+		d.lggr.Errorf("offchainreporting2.Delegate.InDeleteJobTX called with wrong job type, ignoring non-OCR2 spec %v", jb)
+		return
+	}
+	if spec.Relay != relay.EVM {
+		return
+	}
+
+	chainID, err := spec.RelayConfig.EVMChainID()
+	if err != nil {
+		d.lggr.Errorf("OCR2 jobs spec missing chainID")
+		return
+	}
+	chain, err := d.chainSet.Get(big.NewInt(chainID))
+	if err != nil {
+		d.lggr.Errorw("get chainset", err, "err")
+	}
+	lp := chain.LogPoller()
+
+	// TODO:  call UnregisterFilter for config tracker & contract transmitter
+
+	var filters []string
+	switch spec.PluginType {
+	case job.OCR2VRF:
+		filters, err = ocr2vrfcoordinator.FilterNamesFromSpec(spec)
+		if err != nil {
+			d.lggr.Errorw("ocr2vrf.FilterNamesFromSpec", err)
+		}
+	case job.OCR2Keeper:
+		filters, err = ocr2keepersregistry.FilterNamesFromSpec(spec)
+		if err != nil {
+			d.lggr.Errorw("ocr2vrf.FilterNamesFromSpec", err)
+		}
+	default:
+		return
+	}
+
+	for _, filter := range filters {
+		d.lggr.Debugf("Unregistering %s filter", filter)
+		lp.UnregisterFilter(filter)
+	}
+}
+func (d *Delegate) InDeleteJobTX(jb job.Job) error { return nil }
 
 // ServicesForSpec returns the OCR2 services that need to run for this job
 func (d *Delegate) ServicesForSpec(jb job.Job) ([]job.ServiceCtx, error) {

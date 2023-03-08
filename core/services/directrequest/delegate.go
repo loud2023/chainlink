@@ -62,9 +62,10 @@ func (d *Delegate) JobType() job.Type {
 	return job.DirectRequest
 }
 
-func (d *Delegate) BeforeJobCreated(spec job.Job) {}
-func (d *Delegate) AfterJobCreated(spec job.Job)  {}
-func (d *Delegate) BeforeJobDeleted(spec job.Job) {}
+func (d *Delegate) BeforeJobCreated(spec job.Job)    {}
+func (d *Delegate) AfterJobCreated(spec job.Job)     {}
+func (d *Delegate) BeforeJobDeleted(spec job.Job)    {}
+func (d *Delegate) InDeleteJobTX(spec job.Job) error { return nil }
 
 // ServicesForSpec returns the log listener service for a direct request job
 func (d *Delegate) ServicesForSpec(jb job.Job) ([]job.ServiceCtx, error) {
