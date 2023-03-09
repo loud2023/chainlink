@@ -653,10 +653,7 @@ func ExampleRun_chains_cosmos() {
 	//    core.test chains cosmos command [command options] [arguments...]
 	//
 	// COMMANDS:
-	//    create     Create a new Cosmos chain
-	//    delete     Delete an existing Cosmos chain
-	//    list       List all existing Cosmos chains
-	//    configure  Configure an existing Cosmos chain
+	//    list  List all existing Cosmos chains
 	//
 	// OPTIONS:
 	//    --help, -h  show help
@@ -752,9 +749,7 @@ func ExampleRun_nodes_cosmos() {
 	//    core.test nodes cosmos command [command options] [arguments...]
 	//
 	// COMMANDS:
-	//    create  Create a new Cosmos node
-	//    delete  Delete an existing Cosmos node
-	//    list    List all existing Cosmos nodes
+	//    list  List all existing Cosmos nodes
 	//
 	// OPTIONS:
 	//    --help, -h  show help
