@@ -131,8 +131,8 @@ type OCRConfig struct {
 	Transmitters          []common.Address
 	F                     uint8
 	OnchainConfig         []byte
-	OffchainConfigVersion uint64
-	OffchainConfig        []byte
+	OffChainConfigVersion uint64
+	OffChainConfig        []byte
 }
 
 type UpkeepPerformedLog struct {
@@ -319,8 +319,8 @@ func (v *EthereumKeeperRegistry) SetConfig(config KeeperRegistrySettings, ocrCon
 			ocrConfig.Transmitters,
 			ocrConfig.F,
 			ocrConfig.OnchainConfig,
-			ocrConfig.OffchainConfigVersion,
-			ocrConfig.OffchainConfig,
+			ocrConfig.OffChainConfigVersion,
+			ocrConfig.OffChainConfig,
 		)
 		if err != nil {
 			return err
@@ -618,8 +618,8 @@ func (v *EthereumKeeperRegistry) SetKeepers(keepers []string, payees []string, o
 			ocrConfig.Transmitters,
 			ocrConfig.F,
 			ocrConfig.OnchainConfig,
-			ocrConfig.OffchainConfigVersion,
-			ocrConfig.OffchainConfig,
+			ocrConfig.OffChainConfigVersion,
+			ocrConfig.OffChainConfig,
 		)
 	}
 

@@ -6,7 +6,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/smartcontractkit/chainlink-testing-framework/blockchain"
+
 	"github.com/smartcontractkit/chainlink/integration-tests/contracts/ethereum/mercury/exchanger"
 	"github.com/smartcontractkit/chainlink/integration-tests/contracts/ethereum/mercury/verifier"
 	"github.com/smartcontractkit/chainlink/integration-tests/contracts/ethereum/mercury/verifier_proxy"
@@ -25,8 +27,8 @@ type EthereumExchanger struct {
 	exchanger *exchanger.Exchanger
 }
 
-func (v *EthereumExchanger) Address() string {
-	return v.address.Hex()
+func (e *EthereumExchanger) Address() string {
+	return e.address.Hex()
 }
 
 func (e *EthereumExchanger) CommitTrade(commitment [32]byte) error {
@@ -146,8 +148,8 @@ func (v *EthereumVerifier) SetConfig(ocrConfig OCRConfig) error {
 		ocrConfig.Transmitters,
 		ocrConfig.F,
 		ocrConfig.OnchainConfig,
-		ocrConfig.OffchainConfigVersion,
-		ocrConfig.OffchainConfig,
+		ocrConfig.OffChainConfigVersion,
+		ocrConfig.OffChainConfig,
 	)
 	if err != nil {
 		return err

@@ -15,10 +15,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	uuid "github.com/satori/go.uuid"
-	envConf "github.com/smartcontractkit/chainlink-env/config"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
 
+	envConf "github.com/smartcontractkit/chainlink-env/config"
 	"github.com/smartcontractkit/chainlink-env/environment"
 	"github.com/smartcontractkit/chainlink-testing-framework/blockchain"
 	ctfClient "github.com/smartcontractkit/chainlink-testing-framework/client"

@@ -32,8 +32,8 @@ func SetAndWaitForVRFBeaconProcessToFinish(t *testing.T, ocr2VRFPluginConfig *OC
 		ocr2VrfConfig.Transmitters,
 		ocr2VrfConfig.F,
 		ocr2VrfConfig.OnchainConfig,
-		ocr2VrfConfig.OffchainConfigVersion,
-		ocr2VrfConfig.OffchainConfig,
+		ocr2VrfConfig.OffChainConfigVersion,
+		ocr2VrfConfig.OffChainConfig,
 	)
 	require.NoError(t, err, "Error setting OCR config for VRFBeacon contract")
 
@@ -53,8 +53,8 @@ func SetAndWaitForDKGProcessToFinish(t *testing.T, ocr2VRFPluginConfig *OCR2VRFP
 		ocr2DkgConfig.Transmitters,
 		ocr2DkgConfig.F,
 		ocr2DkgConfig.OnchainConfig,
-		ocr2DkgConfig.OffchainConfigVersion,
-		ocr2DkgConfig.OffchainConfig,
+		ocr2DkgConfig.OffChainConfigVersion,
+		ocr2DkgConfig.OffChainConfig,
 	)
 	require.NoError(t, err, "Error setting OCR config for DKG contract")
 

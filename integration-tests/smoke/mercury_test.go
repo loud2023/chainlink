@@ -112,7 +112,8 @@ func TestMercurySmoke(t *testing.T) {
 	testsetups.SetupMercuryNodeJobs(t, chainlinkNodes, mockServerClient, verifier.Address(),
 		mercuryFeedId, msRpcPubKey, testNetwork.ChainID, 0)
 
-	verifier.SetConfig(ocrConfig)
+	err := verifier.SetConfig(ocrConfig)
+	require.NoError(t, err, "Error in SetConfig")
 
 	// Wait for the DON to start generating reports
 	d := 160 * time.Second

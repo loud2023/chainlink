@@ -8,24 +8,21 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"
 
-	"github.com/smartcontractkit/chainlink-testing-framework/blockchain"
-	ctfClient "github.com/smartcontractkit/chainlink-testing-framework/client"
 	"github.com/smartcontractkit/libocr/offchainreporting2/confighelper"
 	"github.com/smartcontractkit/libocr/offchainreporting2/types"
 
+	"github.com/smartcontractkit/chainlink-testing-framework/blockchain"
+	ctfClient "github.com/smartcontractkit/chainlink-testing-framework/client"
 	"github.com/smartcontractkit/chainlink/core/services/keystore/chaintype"
+
 	"github.com/smartcontractkit/chainlink/integration-tests/client"
 	"github.com/smartcontractkit/chainlink/integration-tests/contracts"
 )
-
-// This actions file often returns functions, rather than just values. These are used as common test helpers, and are
-// handy to have returning as functions so that Ginkgo can use them in an aesthetically pleasing way.
 
 // DeployOCRContracts deploys and funds a certain number of offchain aggregator contracts
 func DeployOCRContracts(
@@ -420,71 +417,6 @@ func BuildNodeContractPairID(node *client.Chainlink, ocrInstance contracts.Offch
 	shortNodeAddr := nodeAddress[2:12]
 	shortOCRAddr := ocrInstance.Address()[2:12]
 	return strings.ToLower(fmt.Sprintf("node_%s_contract_%s", shortNodeAddr, shortOCRAddr)), nil
-}
-
-func BuildGeneralOCR2Config(
-	t *testing.T,
-	chainlinkNodes []*client.Chainlink,
-	deltaProgress time.Duration,
-	deltaResend time.Duration,
-	deltaRound time.Duration,
-	deltaGrace time.Duration,
-	deltaStage time.Duration,
-	rMax uint8,
-	s []int,
-	reportingPluginConfig []byte,
-	maxDurationQuery time.Duration,
-	maxDurationObservation time.Duration,
-	maxDurationReport time.Duration,
-	maxDurationShouldAcceptFinalizedReport time.Duration,
-	maxDurationShouldTransmitAcceptedReport time.Duration,
-	f int,
-	onchainConfig []byte,
-) contracts.OCRConfig {
-	l := GetTestLogger(t)
-	_, oracleIdentities := getOracleIdentities(t, chainlinkNodes)
-
-	signerOnchainPublicKeys, transmitterAccounts, f_, onchainConfig_, offchainConfigVersion, offchainConfig, err := confighelper.ContractSetConfigArgsForTests(
-		deltaProgress,
-		deltaResend,
-		deltaRound,
-		deltaGrace,
-		deltaStage,
-		rMax,
-		s,
-		oracleIdentities,
-		reportingPluginConfig,
-		maxDurationQuery,
-		maxDurationObservation,
-		maxDurationReport,
-		maxDurationShouldAcceptFinalizedReport,
-		maxDurationShouldTransmitAcceptedReport,
-		f,
-		onchainConfig,
-	)
-	require.NoError(t, err, "Shouldn't fail ContractSetConfigArgsForTests")
-
-	var signers []common.Address
-	for _, signer := range signerOnchainPublicKeys {
-		require.Equal(t, 20, len(signer), "OnChainPublicKey has wrong length for address")
-		signers = append(signers, common.BytesToAddress(signer))
-	}
-
-	var transmitters []common.Address
-	for _, transmitter := range transmitterAccounts {
-		require.True(t, common.IsHexAddress(string(transmitter)), "TransmitAccount is not a valid Ethereum address")
-		transmitters = append(transmitters, common.HexToAddress(string(transmitter)))
-	}
-
-	l.Info().Msg("Done building OCR2 config")
-	return contracts.OCRConfig{
-		Signers:               signers,
-		Transmitters:          transmitters,
-		F:                     f_,
-		OnchainConfig:         onchainConfig_,
-		OffchainConfigVersion: offchainConfigVersion,
-		OffchainConfig:        offchainConfig,
-	}
 }
 
 func getOracleIdentities(t *testing.T, chainlinkNodes []*client.Chainlink) ([]int, []confighelper.OracleIdentityExtra) {

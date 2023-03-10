@@ -24,6 +24,7 @@ import (
 
 	"github.com/smartcontractkit/chainlink/core/services/job"
 	"github.com/smartcontractkit/chainlink/core/services/keystore/chaintype"
+
 	"github.com/smartcontractkit/chainlink/integration-tests/actions"
 
 	"github.com/smartcontractkit/chainlink/integration-tests/client"
@@ -198,8 +199,8 @@ func BuildOCR2DKGConfigVars(
 		Transmitters:          transmitters,
 		F:                     f,
 		OnchainConfig:         onchainConfig,
-		OffchainConfigVersion: offchainConfigVersion,
-		OffchainConfig:        offchainConfig,
+		OffChainConfigVersion: offchainConfigVersion,
+		OffChainConfig:        offchainConfig,
 	}
 }
 
@@ -323,8 +324,8 @@ func BuildOCR2VRFConfigVars(
 		Transmitters:          transmitters,
 		F:                     f,
 		OnchainConfig:         onchainConfig,
-		OffchainConfigVersion: offchainConfigVersion,
-		OffchainConfig:        offchainConfig,
+		OffChainConfigVersion: offchainConfigVersion,
+		OffChainConfig:        offchainConfig,
 	}
 
 }
