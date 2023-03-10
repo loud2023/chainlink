@@ -573,6 +573,30 @@ func (_m *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	return r0
 }
 
+// SendTransactionAndReturnErrorType provides a mock function with given fields: ctx, tx, fromAddress
+func (_m *Client) SendTransactionAndReturnErrorType(ctx context.Context, tx *types.Transaction, fromAddress common.Address) (evmtypes.TxmErrorType, error) {
+	ret := _m.Called(ctx, tx, fromAddress)
+
+	var r0 evmtypes.TxmErrorType
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *types.Transaction, common.Address) (evmtypes.TxmErrorType, error)); ok {
+		return rf(ctx, tx, fromAddress)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *types.Transaction, common.Address) evmtypes.TxmErrorType); ok {
+		r0 = rf(ctx, tx, fromAddress)
+	} else {
+		r0 = ret.Get(0).(evmtypes.TxmErrorType)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *types.Transaction, common.Address) error); ok {
+		r1 = rf(ctx, tx, fromAddress)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SubscribeFilterLogs provides a mock function with given fields: ctx, q, ch
 func (_m *Client) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error) {
 	ret := _m.Called(ctx, q, ch)

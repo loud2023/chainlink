@@ -356,6 +356,10 @@ func (c *SimulatedBackendClient) HeaderByHash(ctx context.Context, h common.Hash
 	return c.b.HeaderByHash(ctx, h)
 }
 
+func (c *SimulatedBackendClient) SendTransactionAndReturnErrorType(ctx context.Context, tx *types.Transaction, fromAddress common.Address) (evmtypes.TxmErrorType, error) {
+	panic("unimplemented")
+}
+
 // SendTransaction sends a transaction.
 func (c *SimulatedBackendClient) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	sender, err := types.Sender(types.NewLondonSigner(c.chainId), tx)

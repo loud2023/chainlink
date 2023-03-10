@@ -120,6 +120,11 @@ func (nc *NullClient) HeaderByHash(ctx context.Context, h common.Hash) (*types.H
 	return nil, nil
 }
 
+func (nc *NullClient) SendTransactionAndReturnErrorType(ctx context.Context, tx *types.Transaction, sender common.Address) (evmtypes.TxmErrorType, error) {
+	nc.lggr.Debug("SendTransactionAndReturnErrorType")
+	return evmtypes.Successful, nil
+}
+
 func (nc *NullClient) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	nc.lggr.Debug("SendTransaction")
 	return nil
